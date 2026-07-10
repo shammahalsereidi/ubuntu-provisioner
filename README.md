@@ -1,15 +1,15 @@
 # Ubuntu Provisioner
 
 An idempotent Ansible-based provisioning project that turns a fresh Ubuntu 24.04 machine into a secure, developer-ready workstation or server.
-## Demo
 
-### Successful provisioning
+
+## Demo
 
 ![Ansible Success](screenshots/ansible-success.png)
 
-### Provisioned Ubuntu VM
-
 ![Provisioned VM](screenshots/vm-after-provisioning.png)
+
+
 
 
 
