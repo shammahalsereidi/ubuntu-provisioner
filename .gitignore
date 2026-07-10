@@ -1,0 +1,9 @@
+*.retry
+*.log
+.env
+.vagrant/
+__pycache__/
+.DS_Store
+inventory.local.ini
+screenshots/*.png
+!screenshots/.gitkeep

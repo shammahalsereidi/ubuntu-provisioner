@@ -1,0 +1,23 @@
+---
+- name: Provision Ubuntu Workstation
+  hosts: ubuntu_hosts
+  become: true
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Ensure apt cache is fresh
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  roles:
+    - common
+    - security
+    - docker
+    - devtools
+
+  post_tasks:
+    - name: Provisioning complete
+      ansible.builtin.debug:
+        msg: "Ubuntu {{ ansible_distribution_version }} provisioning finished successfully."

@@ -1,0 +1,116 @@
+---
+# --- Python -----------------------------------------------------------------
+- name: Install Python tooling
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-venv
+      - python3-dev
+    state: present
+
+# --- Node.js (via NodeSource) -------------------------------------------------
+- name: Add NodeSource GPG key
+  ansible.builtin.get_url:
+    url: "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key"
+    dest: /etc/apt/keyrings/nodesource.asc
+    mode: "0644"
+
+- name: Add NodeSource apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/nodesource.asc]
+      https://deb.nodesource.com/node_{{ node_major_version }}.x nodistro main
+    state: present
+    filename: nodesource
+
+- name: Install Node.js
+  ansible.builtin.apt:
+    update_cache: true
+    name: nodejs
+    state: present
+
+# --- VS Code ------------------------------------------------------------------
+- name: Add Microsoft GPG key
+  ansible.builtin.get_url:
+    url: "https://packages.microsoft.com/keys/microsoft.asc"
+    dest: /etc/apt/keyrings/microsoft.asc
+    mode: "0644"
+  when: install_vscode
+
+- name: Add VS Code apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/microsoft.asc]
+      https://packages.microsoft.com/repos/code stable main
+    state: present
+    filename: vscode
+  when: install_vscode
+
+- name: Install VS Code
+  ansible.builtin.apt:
+    update_cache: true
+    name: code
+    state: present
+  when: install_vscode
+
+# --- Git global config for each provisioned user ------------------------------
+- name: Set git user.name
+  community.general.git_config:
+    name: user.name
+    value: "{{ git_user_name }}"
+    scope: global
+  become: true
+  become_user: "{{ item.name }}"
+  loop: "{{ users }}"
+
+- name: Set git user.email
+  community.general.git_config:
+    name: user.email
+    value: "{{ git_user_email }}"
+    scope: global
+  become: true
+  become_user: "{{ item.name }}"
+  loop: "{{ users }}"
+
+- name: Set git default branch to main
+  community.general.git_config:
+    name: init.defaultBranch
+    value: main
+    scope: global
+  become: true
+  become_user: "{{ item.name }}"
+  loop: "{{ users }}"
+
+# --- ROS 2 (optional, heavy install) ------------------------------------------
+- name: Add ROS 2 apt repository and install desktop packages
+  when: install_ros
+  block:
+    - name: Add ROS 2 GPG key
+      ansible.builtin.get_url:
+        url: "https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc"
+        dest: /etc/apt/keyrings/ros.asc
+        mode: "0644"
+
+    - name: Add ROS 2 apt repository
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch={{ ansible_architecture | regex_replace('x86_64', 'amd64') }}
+          signed-by=/etc/apt/keyrings/ros.asc]
+          http://packages.ros.org/ros2/ubuntu
+          {{ ansible_distribution_release }} main
+        state: present
+        filename: ros2
+
+    - name: Install ROS 2 {{ ros_distro }} desktop
+      ansible.builtin.apt:
+        update_cache: true
+        name: "ros-{{ ros_distro }}-desktop"
+        state: present
+
+    - name: Install colcon and rosdep
+      ansible.builtin.apt:
+        name:
+          - python3-colcon-common-extensions
+          - python3-rosdep
+        state: present
