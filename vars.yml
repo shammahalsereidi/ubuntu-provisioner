@@ -46,8 +46,8 @@ docker_users: "{{ users | map(attribute='name') | list }}"
 # ---------------------------------------------------------------------------
 # Devtools role settings
 # ---------------------------------------------------------------------------
-git_user_name: "Ahmed"
-git_user_email: "ahmed@example.com"
+git_user_name: "Developer"
+git_user_email: "developer@example.com"
 
 node_major_version: "22"        # installed via NodeSource
 install_vscode: true
